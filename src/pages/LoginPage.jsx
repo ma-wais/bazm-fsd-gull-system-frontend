@@ -7,8 +7,8 @@ export function LoginPage() {
   const [mode, setMode] = useState("login");
   const [form, setForm] = useState({
     name: "City President",
-    email: "president@bazm.test",
-    password: "ChangeMe123!"
+    email: "",
+    password: ""
   });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
