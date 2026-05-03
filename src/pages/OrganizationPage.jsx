@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, RefreshCw } from "lucide-react";
+import { Archive, CheckCircle2, Plus, RefreshCw } from "lucide-react";
 import { apiRequest } from "../api/client.js";
 import { EmptyState } from "../components/EmptyState.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -88,6 +88,32 @@ export function OrganizationPage({ notify }) {
       notify(err.message, "error");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function setZoneStatus(zone, isActive) {
+    try {
+      const data = await apiRequest(`/organization/zones/${zone._id}`, {
+        method: "PATCH",
+        body: { isActive }
+      });
+      setZones((current) => current.map((item) => (item._id === zone._id ? data.zone : item)));
+      notify(isActive ? "Zone activated." : "Zone archived.", "success");
+    } catch (err) {
+      notify(err.message, "error");
+    }
+  }
+
+  async function setUnitStatus(unit, isActive) {
+    try {
+      const data = await apiRequest(`/organization/units/${unit._id}`, {
+        method: "PATCH",
+        body: { isActive }
+      });
+      setUnits((current) => current.map((item) => (item._id === unit._id ? data.unit : item)));
+      notify(isActive ? "Unit activated." : "Unit archived.", "success");
+    } catch (err) {
+      notify(err.message, "error");
     }
   }
 
@@ -187,9 +213,21 @@ export function OrganizationPage({ notify }) {
                     <strong>{zone.name}</strong>
                     <span>{zone.code}</span>
                   </div>
-                  <span className={zone.isActive ? "status active" : "status muted"}>
-                    {zone.isActive ? "Active" : "Inactive"}
-                  </span>
+                  <div className="row-actions">
+                    <span className={zone.isActive ? "status active" : "status muted"}>
+                      {zone.isActive ? "Active" : "Inactive"}
+                    </span>
+                    {canManageZones(user.role) ? (
+                      <button
+                        type="button"
+                        className="icon-button"
+                        onClick={() => setZoneStatus(zone, !zone.isActive)}
+                        aria-label={zone.isActive ? `Archive ${zone.name}` : `Activate ${zone.name}`}
+                      >
+                        {zone.isActive ? <Archive size={15} aria-hidden="true" /> : <CheckCircle2 size={15} aria-hidden="true" />}
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
                 <p>{zone.description || "No description added."}</p>
                 <div className="unit-list compact-list">
@@ -199,7 +237,20 @@ export function OrganizationPage({ notify }) {
                         <strong>{unit.name}</strong>
                         <span>{unit.area || "Area not set"}</span>
                       </div>
-                      <small>{unit.code}</small>
+                      <div className="row-actions">
+                        <small>{unit.code}</small>
+                        <span className={unit.isActive ? "status active" : "status muted"}>{unit.isActive ? "Active" : "Inactive"}</span>
+                        {canManageUnits(user.role) ? (
+                          <button
+                            type="button"
+                            className="icon-button"
+                            onClick={() => setUnitStatus(unit, !unit.isActive)}
+                            aria-label={unit.isActive ? `Archive ${unit.name}` : `Activate ${unit.name}`}
+                          >
+                            {unit.isActive ? <Archive size={15} aria-hidden="true" /> : <CheckCircle2 size={15} aria-hidden="true" />}
+                          </button>
+                        ) : null}
+                      </div>
                     </div>
                   ))}
                   {!unitsByZone[zone._id]?.length ? <span className="muted-text">No units yet.</span> : null}

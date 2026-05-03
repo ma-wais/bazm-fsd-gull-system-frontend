@@ -26,17 +26,6 @@ export function AuthProvider({ children }) {
     return data.user;
   }
 
-  async function setupInitialAccount(payload) {
-    const data = await apiRequest("/auth/setup", {
-      method: "POST",
-      body: payload
-    });
-    setToken(data.token);
-    setUser(data.user);
-    setCreatableRoles(data.creatableRoles || []);
-    return data.user;
-  }
-
   async function changePassword(currentPassword, newPassword) {
     await apiRequest("/auth/password", {
       method: "PATCH",
@@ -68,7 +57,6 @@ export function AuthProvider({ children }) {
       login,
       logout,
       refreshUser,
-      setupInitialAccount,
       changePassword
     }),
     [user, creatableRoles, loading]

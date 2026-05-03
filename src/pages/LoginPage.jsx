@@ -3,10 +3,8 @@ import { ShieldCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export function LoginPage() {
-  const { login, setupInitialAccount } = useAuth();
-  const [mode, setMode] = useState("login");
+  const { login } = useAuth();
   const [form, setForm] = useState({
-    name: "City President",
     email: "",
     password: ""
   });
@@ -22,11 +20,7 @@ export function LoginPage() {
     setSubmitting(true);
     setError("");
     try {
-      if (mode === "login") {
-        await login(form.email, form.password);
-      } else {
-        await setupInitialAccount(form);
-      }
+      await login(form.email, form.password);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -45,23 +39,7 @@ export function LoginPage() {
           </div>
         </div>
 
-        <div className="segmented-control" role="tablist" aria-label="Login mode">
-          <button type="button" className={mode === "login" ? "active" : ""} onClick={() => setMode("login")}>
-            Login
-          </button>
-          <button type="button" className={mode === "setup" ? "active" : ""} onClick={() => setMode("setup")}>
-            Initial setup
-          </button>
-        </div>
-
         <form className="form-stack" onSubmit={handleSubmit}>
-          {mode === "setup" ? (
-            <label>
-              Name
-              <input name="name" value={form.name} onChange={updateField} autoComplete="name" required />
-            </label>
-          ) : null}
-
           <label>
             Email
             <input name="email" type="email" value={form.email} onChange={updateField} autoComplete="email" required />
@@ -74,7 +52,7 @@ export function LoginPage() {
               type="password"
               value={form.password}
               onChange={updateField}
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              autoComplete="current-password"
               minLength={8}
               required
             />
@@ -83,7 +61,7 @@ export function LoginPage() {
           {error ? <p className="form-error">{error}</p> : null}
 
           <button type="submit" className="primary-button" disabled={submitting}>
-            {submitting ? "Working..." : mode === "login" ? "Login" : "Create city president"}
+            {submitting ? "Working..." : "Login"}
           </button>
         </form>
       </section>

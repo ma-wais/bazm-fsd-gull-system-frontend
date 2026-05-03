@@ -8,14 +8,15 @@ import { FinancePage } from "./pages/FinancePage.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
 import { MembersPage } from "./pages/MembersPage.jsx";
 import { OrganizationPage } from "./pages/OrganizationPage.jsx";
-import { PasswordNotice } from "./pages/PasswordNotice.jsx";
+import { PasswordPage } from "./pages/PasswordNotice.jsx";
 
 const viewMap = {
   dashboard: DashboardPage,
   organization: OrganizationPage,
   members: MembersPage,
   finance: FinancePage,
-  accounts: AccountsPage
+  accounts: AccountsPage,
+  password: PasswordPage
 };
 
 export function App() {
@@ -35,7 +36,6 @@ export function App() {
 
   return (
     <Layout activeView={activeView} onViewChange={setActiveView}>
-      <PasswordNotice />
       <ActivePage notify={(message, type = "info") => setToast({ message, type })} />
       <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
     </Layout>

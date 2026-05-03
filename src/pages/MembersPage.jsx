@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, Plus, RefreshCw, Search, ShieldCheck } from "lucide-react";
+import { Download, Plus, RefreshCw, Search, ShieldCheck, Trash2 } from "lucide-react";
 import { apiRequest, downloadCsv } from "../api/client.js";
 import { EmptyState } from "../components/EmptyState.jsx";
 
@@ -122,6 +122,19 @@ export function MembersPage({ notify }) {
     }
   }
 
+  async function deleteMember(member) {
+    const confirmed = window.confirm(`Delete ${member.fullName}? This cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      await apiRequest(`/members/${member._id}`, { method: "DELETE" });
+      setMembers((current) => current.filter((item) => item._id !== member._id));
+      notify("Member deleted.", "success");
+    } catch (err) {
+      notify(err.message, "error");
+    }
+  }
+
   async function exportCsv() {
     try {
       await downloadCsv("/members/export.csv", "members.csv");
@@ -167,15 +180,15 @@ export function MembersPage({ notify }) {
             <input name="className" value={form.className} onChange={updateForm} required />
           </label>
           <label>
-            Phone
-            <input name="phone" value={form.phone} onChange={updateForm} required />
+            Phone <span className="optional-text">optional</span>
+            <input name="phone" value={form.phone} onChange={updateForm} />
           </label>
           <label>
             Guardian phone
             <input name="guardianPhone" value={form.guardianPhone} onChange={updateForm} />
           </label>
           <label>
-            CNIC or B-Form
+            CNIC or B-Form <span className="optional-text">optional</span>
             <input name="cnicOrBForm" value={form.cnicOrBForm} onChange={updateForm} />
           </label>
           <label>
@@ -264,6 +277,7 @@ export function MembersPage({ notify }) {
                   <th>Unit</th>
                   <th>Address</th>
                   <th>Shaheen</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -274,13 +288,18 @@ export function MembersPage({ notify }) {
                       <span className="table-subtext">{member.institution || member.fatherName || "Student"}</span>
                     </td>
                     <td>{member.className}</td>
-                    <td>{member.phone}</td>
+                    <td>{member.phone || <span className="muted-text">Not added</span>}</td>
                     <td>{member.unit?.name}</td>
                     <td>{member.address}</td>
                     <td>
                       <button type="button" className={member.isShaheen ? "pill-button selected" : "pill-button"} onClick={() => toggleShaheen(member)}>
                         <ShieldCheck size={15} aria-hidden="true" />
                         {member.isShaheen ? "Shaheen" : "Appoint"}
+                      </button>
+                    </td>
+                    <td>
+                      <button type="button" className="icon-button danger-button" onClick={() => deleteMember(member)} aria-label={`Delete ${member.fullName}`}>
+                        <Trash2 size={15} aria-hidden="true" />
                       </button>
                     </td>
                   </tr>

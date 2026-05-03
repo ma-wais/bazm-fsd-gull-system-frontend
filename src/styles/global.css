@@ -62,7 +62,7 @@ table {
 
 th,
 td {
-  padding: 14px 16px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--border);
   text-align: left;
   vertical-align: top;
@@ -88,7 +88,7 @@ textarea {
   border-radius: 8px;
   background: #ffffff;
   color: var(--text);
-  padding: 11px 12px;
+  padding: 9px 10px;
   outline: none;
 }
 
@@ -108,6 +108,13 @@ label {
   gap: 7px;
   color: #43534f;
   font-size: 0.86rem;
+  font-weight: 700;
+}
+
+label .optional-text {
+  display: inline;
+  color: var(--muted);
+  font-size: 0.76rem;
   font-weight: 700;
 }
 
@@ -179,7 +186,7 @@ label {
 
 .shell {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 260px 1fr;
   min-height: 100vh;
 }
 
@@ -191,14 +198,14 @@ label {
   flex-direction: column;
   border-right: 1px solid var(--border);
   background: #fbfdfc;
-  padding: 20px;
+  padding: 16px;
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 8px 24px;
+  padding: 8px 6px 18px;
 }
 
 .brand svg {
@@ -222,7 +229,7 @@ label {
 
 .nav-list {
   display: grid;
-  gap: 7px;
+  gap: 5px;
 }
 
 .nav-list button,
@@ -245,7 +252,7 @@ label {
   border: 0;
   background: transparent;
   color: #53635f;
-  padding: 12px 13px;
+  padding: 10px 11px;
 }
 
 .nav-list button.active,
@@ -268,13 +275,13 @@ label {
 }
 
 .content {
-  width: min(1380px, 100%);
-  padding: 28px;
+  width: min(1440px, 100%);
+  padding: 22px;
 }
 
 .page-stack {
   display: grid;
-  gap: 22px;
+  gap: 16px;
 }
 
 .page-header {
@@ -285,14 +292,14 @@ label {
 }
 
 .page-header h1 {
-  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  font-size: clamp(1.45rem, 2.4vw, 2rem);
 }
 
 .page-header p {
   max-width: 760px;
   margin-top: 6px;
   color: var(--muted);
-  line-height: 1.55;
+  line-height: 1.45;
 }
 
 .panel {
@@ -308,9 +315,9 @@ label {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  min-height: 62px;
+  min-height: 52px;
   border-bottom: 1px solid var(--border);
-  padding: 16px 18px;
+  padding: 12px 14px;
 }
 
 .panel-header.wrap {
@@ -319,6 +326,9 @@ label {
 }
 
 .panel-header h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 1.05rem;
 }
 
@@ -330,7 +340,7 @@ label {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(140px, 1fr));
-  gap: 14px;
+  gap: 10px;
 }
 
 .finance-stats {
@@ -339,12 +349,12 @@ label {
 
 .stat-card {
   display: grid;
-  gap: 7px;
-  min-height: 128px;
+  gap: 5px;
+  min-height: 98px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
-  padding: 18px;
+  padding: 13px;
   box-shadow: var(--shadow);
 }
 
@@ -356,7 +366,7 @@ label {
 
 .stat-card strong {
   color: #10211d;
-  font-size: clamp(1.35rem, 2.6vw, 2rem);
+  font-size: clamp(1.2rem, 2.2vw, 1.65rem);
   line-height: 1.1;
 }
 
@@ -368,18 +378,18 @@ label {
 .two-column {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
+  gap: 16px;
 }
 
 .form-stack,
 .form-grid {
   display: grid;
-  gap: 15px;
+  gap: 12px;
 }
 
 .form-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  padding: 18px;
+  padding: 14px;
 }
 
 .form-grid.wide {
@@ -394,7 +404,7 @@ label {
 .secondary-button,
 .pill-button {
   border: 1px solid transparent;
-  padding: 10px 14px;
+  padding: 8px 12px;
   text-decoration: none;
 }
 
@@ -438,7 +448,7 @@ label {
 .filter-row {
   display: grid;
   grid-template-columns: minmax(170px, 1.2fr) minmax(150px, 1fr) minmax(150px, 1fr) minmax(130px, 0.8fr) auto;
-  gap: 12px;
+  gap: 10px;
   align-items: end;
 }
 
@@ -476,8 +486,8 @@ label {
 
 .unit-list {
   display: grid;
-  gap: 10px;
-  padding: 16px;
+  gap: 8px;
+  padding: 12px;
 }
 
 .compact-list {
@@ -492,7 +502,7 @@ label {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: #fbfdfc;
-  padding: 12px;
+  padding: 9px 10px;
 }
 
 .list-row strong {
@@ -508,17 +518,17 @@ label {
 .zone-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  padding: 18px;
+  gap: 12px;
+  padding: 14px;
 }
 
 .zone-card {
   display: grid;
-  gap: 14px;
+  gap: 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface-2);
-  padding: 16px;
+  padding: 12px;
 }
 
 .zone-card-head {
@@ -567,6 +577,32 @@ label {
   background: #ffffff;
   color: #374844;
   white-space: nowrap;
+}
+
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.danger-button {
+  background: #fde7ea;
+  color: var(--danger);
+}
+
+.narrow-panel {
+  max-width: 560px;
+}
+
+.password-form {
+  padding: 14px;
+}
+
+.mobile-menu-button {
+  display: none;
+  margin-left: auto;
 }
 
 .pill-button.selected {
@@ -673,20 +709,39 @@ label {
   .sidebar {
     position: static;
     height: auto;
-    padding: 14px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 12px;
   }
 
   .nav-list {
+    display: none;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding-top: 8px;
+  }
+
+  .sidebar.open .nav-list,
+  .sidebar.open .sidebar-footer {
+    display: grid;
   }
 
   .sidebar-footer {
+    display: none;
     grid-template-columns: 1fr auto;
     align-items: center;
+    padding-top: 10px;
+  }
+
+  .mobile-menu-button {
+    display: inline-flex;
+  }
+
+  .brand {
+    padding: 4px 0;
   }
 
   .content {
-    padding: 18px;
+    padding: 14px;
   }
 
   .page-header,
@@ -737,6 +792,6 @@ label {
 
   th,
   td {
-    padding: 12px;
+    padding: 10px;
   }
 }

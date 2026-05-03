@@ -2,14 +2,11 @@ import { useState } from "react";
 import { KeyRound } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
 
-export function PasswordNotice() {
+export function PasswordPage({ notify }) {
   const { user, changePassword } = useAuth();
   const [form, setForm] = useState({ currentPassword: "", newPassword: "" });
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  if (!user?.mustChangePassword) return null;
 
   function updateField(event) {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -19,11 +16,10 @@ export function PasswordNotice() {
     event.preventDefault();
     setSubmitting(true);
     setError("");
-    setMessage("");
     try {
       await changePassword(form.currentPassword, form.newPassword);
-      setMessage("Password changed.");
       setForm({ currentPassword: "", newPassword: "" });
+      notify("Password changed.", "success");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -32,35 +28,37 @@ export function PasswordNotice() {
   }
 
   return (
-    <section className="notice-band">
-      <div>
-        <KeyRound size={20} aria-hidden="true" />
-        <strong>Change your temporary password</strong>
-      </div>
-      <form className="inline-form" onSubmit={submit}>
-        <input
-          name="currentPassword"
-          type="password"
-          placeholder="Current password"
-          value={form.currentPassword}
-          onChange={updateField}
-          required
-        />
-        <input
-          name="newPassword"
-          type="password"
-          placeholder="New password"
-          value={form.newPassword}
-          minLength={8}
-          onChange={updateField}
-          required
-        />
-        <button type="submit" className="primary-button compact" disabled={submitting}>
-          Update
-        </button>
-      </form>
-      {error ? <span className="form-error">{error}</span> : null}
-      {message ? <span className="form-success">{message}</span> : null}
+    <section className="page-stack">
+      <header className="page-header">
+        <div>
+          <h1>Password</h1>
+          <p>Update the password for {user?.email}.</p>
+        </div>
+      </header>
+
+      <section className="panel narrow-panel">
+        <div className="panel-header">
+          <h2>
+            <KeyRound size={18} aria-hidden="true" />
+            Change Password
+          </h2>
+          {user?.mustChangePassword ? <span className="status danger">Temporary password</span> : null}
+        </div>
+        <form className="form-stack password-form" onSubmit={submit}>
+          <label>
+            Current password
+            <input name="currentPassword" type="password" value={form.currentPassword} onChange={updateField} required />
+          </label>
+          <label>
+            New password
+            <input name="newPassword" type="password" value={form.newPassword} minLength={8} onChange={updateField} required />
+          </label>
+          {error ? <p className="form-error">{error}</p> : null}
+          <button type="submit" className="primary-button" disabled={submitting}>
+            Update password
+          </button>
+        </form>
+      </section>
     </section>
   );
 }
