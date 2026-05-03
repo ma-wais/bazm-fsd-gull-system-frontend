@@ -25,7 +25,7 @@ export function Layout({ activeView, onViewChange, children }) {
     <div className="shell">
       <aside className={navOpen ? "sidebar open" : "sidebar"}>
         <div className="brand">
-          <ShieldCheck size={28} aria-hidden="true" />
+          <ShieldCheck size={26} aria-hidden="true" />
           <div>
             <strong>Bazm Faisalabad</strong>
             <span>Student organization system</span>

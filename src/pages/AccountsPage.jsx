@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw, Save } from "lucide-react";
 import { apiRequest } from "../api/client.js";
 import { EmptyState } from "../components/EmptyState.jsx";
+import { Loader } from "../components/Loader.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { roleLabel, roleLevel } from "../utils/roles.js";
 
@@ -16,13 +17,15 @@ const initialForm = {
 };
 
 export function AccountsPage({ notify }) {
-  const { creatableRoles } = useAuth();
+  const { user, creatableRoles, updateProfile } = useAuth();
   const [users, setUsers] = useState([]);
   const [zones, setZones] = useState([]);
   const [units, setUnits] = useState([]);
   const [form, setForm] = useState(initialForm);
+  const [profileForm, setProfileForm] = useState({ name: "", email: "", phone: "" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
 
   const targetLevel = roleLevel(form.role);
   const visibleUnits = useMemo(() => {
@@ -59,6 +62,14 @@ export function AccountsPage({ notify }) {
     loadAll();
   }, [creatableRoles.join("|")]);
 
+  useEffect(() => {
+    setProfileForm({
+      name: user?.name || "",
+      email: user?.email || "",
+      phone: user?.phone || ""
+    });
+  }, [user?.id, user?.name, user?.email, user?.phone]);
+
   function updateField(event) {
     const { name, value } = event.target;
     setForm((current) => ({
@@ -66,6 +77,24 @@ export function AccountsPage({ notify }) {
       [name]: value,
       ...(name === "zone" ? { unit: "" } : {})
     }));
+  }
+
+  function updateProfileField(event) {
+    setProfileForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  }
+
+  async function saveProfile(event) {
+    event.preventDefault();
+    setSavingProfile(true);
+    try {
+      await updateProfile(profileForm);
+      setUsers((current) => current.map((item) => ((item._id || item.id) === user.id ? { ...item, ...profileForm } : item)));
+      notify("Account info updated.", "success");
+    } catch (err) {
+      notify(err.message, "error");
+    } finally {
+      setSavingProfile(false);
+    }
   }
 
   async function createAccount(event) {
@@ -121,6 +150,35 @@ export function AccountsPage({ notify }) {
           Refresh
         </button>
       </header>
+
+      <section className="panel">
+        <div className="panel-header">
+          <h2>My Account</h2>
+          <span>{roleLabel(user?.role)}</span>
+        </div>
+        <form className="form-grid wide" onSubmit={saveProfile}>
+          <label>
+            Name
+            <input name="name" value={profileForm.name} onChange={updateProfileField} required />
+          </label>
+          <label>
+            Email
+            <input name="email" type="email" value={profileForm.email} onChange={updateProfileField} required />
+          </label>
+          <label>
+            Phone
+            <input name="phone" value={profileForm.phone} onChange={updateProfileField} />
+          </label>
+          <label>
+            Scope
+            <input value={user?.unit?.name || user?.zone?.name || "City"} disabled />
+          </label>
+          <button type="submit" className="primary-button span-2" disabled={savingProfile}>
+            <Save size={16} aria-hidden="true" />
+            Save account info
+          </button>
+        </form>
+      </section>
 
       {creatableRoles.length ? (
         <section className="panel">
@@ -208,7 +266,9 @@ export function AccountsPage({ notify }) {
           <h2>Visible Accounts</h2>
           <span>{users.length} accounts</span>
         </div>
-        {users.length ? (
+        {loading ? (
+          <Loader label="Loading accounts..." />
+        ) : users.length ? (
           <div className="table-wrap">
             <table>
               <thead>

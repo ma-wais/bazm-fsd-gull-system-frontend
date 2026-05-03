@@ -34,6 +34,16 @@ export function AuthProvider({ children }) {
     await refreshUser();
   }
 
+  async function updateProfile(payload) {
+    const data = await apiRequest("/users/me", {
+      method: "PATCH",
+      body: payload
+    });
+    setUser(data.user);
+    setCreatableRoles(data.creatableRoles || []);
+    return data.user;
+  }
+
   function logout() {
     setToken(null);
     setUser(null);
@@ -57,7 +67,8 @@ export function AuthProvider({ children }) {
       login,
       logout,
       refreshUser,
-      changePassword
+      changePassword,
+      updateProfile
     }),
     [user, creatableRoles, loading]
   );

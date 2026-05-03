@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ShieldCheck } from "lucide-react";
+import { Loader } from "../components/Loader.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export function LoginPage() {
@@ -59,6 +60,7 @@ export function LoginPage() {
           </label>
 
           {error ? <p className="form-error">{error}</p> : null}
+          {submitting ? <Loader label="Contacting server..." /> : null}
 
           <button type="submit" className="primary-button" disabled={submitting}>
             {submitting ? "Working..." : "Login"}

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Layout } from "./components/Layout.jsx";
+import { Loader } from "./components/Loader.jsx";
 import { Toast } from "./components/Toast.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 import { AccountsPage } from "./pages/AccountsPage.jsx";
@@ -25,7 +26,11 @@ export function App() {
   const [toast, setToast] = useState(null);
 
   if (loading) {
-    return <div className="loading-screen">Loading Bazm Faisalabad...</div>;
+    return (
+      <div className="loading-screen">
+        <Loader label="Loading Bazm Faisalabad..." />
+      </div>
+    );
   }
 
   if (!user) {

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Download, Plus, RefreshCw } from "lucide-react";
 import { apiRequest, downloadCsv } from "../api/client.js";
 import { EmptyState } from "../components/EmptyState.jsx";
+import { Loader } from "../components/Loader.jsx";
 import { StatCard } from "../components/StatCard.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { canWriteFinance } from "../utils/roles.js";
@@ -140,6 +141,8 @@ export function FinancePage({ notify }) {
           </button>
         </div>
       </header>
+
+      {loading ? <Loader label="Loading finance records..." /> : null}
 
       <div className="stats-grid finance-stats">
         <StatCard label="Income" value={formatMoney(summary?.income)} helper="All accessible records" />

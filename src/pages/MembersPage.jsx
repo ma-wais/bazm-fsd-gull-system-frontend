@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, Plus, RefreshCw, Search, ShieldCheck, Trash2 } from "lucide-react";
+import { Download, Edit3, Plus, RefreshCw, Save, Search, ShieldCheck, Trash2, X } from "lucide-react";
 import { apiRequest, downloadCsv } from "../api/client.js";
 import { EmptyState } from "../components/EmptyState.jsx";
+import { Loader } from "../components/Loader.jsx";
 
 const initialMember = {
   fullName: "",
@@ -22,6 +23,7 @@ export function MembersPage({ notify }) {
   const [members, setMembers] = useState([]);
   const [filters, setFilters] = useState({ search: "", zone: "", unit: "", isShaheen: "" });
   const [form, setForm] = useState(initialMember);
+  const [editingMemberId, setEditingMemberId] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -91,17 +93,44 @@ export function MembersPage({ notify }) {
     }
   }
 
-  async function createMember(event) {
+  function startEdit(member) {
+    setEditingMemberId(member._id);
+    setForm({
+      fullName: member.fullName || "",
+      fatherName: member.fatherName || "",
+      address: member.address || "",
+      className: member.className || "",
+      institution: member.institution || "",
+      phone: member.phone || "",
+      guardianPhone: member.guardianPhone || "",
+      cnicOrBForm: member.cnicOrBForm || "",
+      unit: member.unit?._id || member.unit || "",
+      notes: member.notes || ""
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function cancelEdit() {
+    setEditingMemberId("");
+    setForm((current) => ({ ...initialMember, unit: current.unit }));
+  }
+
+  async function saveMember(event) {
     event.preventDefault();
     setSaving(true);
     try {
-      const data = await apiRequest("/members", {
-        method: "POST",
+      const data = await apiRequest(editingMemberId ? `/members/${editingMemberId}` : "/members", {
+        method: editingMemberId ? "PATCH" : "POST",
         body: form
       });
-      setMembers((current) => [data.member, ...current]);
+      setMembers((current) =>
+        editingMemberId
+          ? current.map((member) => (member._id === editingMemberId ? data.member : member))
+          : [data.member, ...current]
+      );
+      setEditingMemberId("");
       setForm((current) => ({ ...initialMember, unit: current.unit }));
-      notify("Member saved.", "success");
+      notify(editingMemberId ? "Member updated." : "Member saved.", "success");
     } catch (err) {
       notify(err.message, "error");
     } finally {
@@ -164,9 +193,15 @@ export function MembersPage({ notify }) {
 
       <section className="panel">
         <div className="panel-header">
-          <h2>Add Member</h2>
+          <h2>{editingMemberId ? "Edit Member" : "Add Member"}</h2>
+          {editingMemberId ? (
+            <button type="button" className="secondary-button compact" onClick={cancelEdit}>
+              <X size={16} aria-hidden="true" />
+              Cancel
+            </button>
+          ) : null}
         </div>
-        <form className="form-grid wide" onSubmit={createMember}>
+        <form className="form-grid wide" onSubmit={saveMember}>
           <label>
             Full name
             <input name="fullName" value={form.fullName} onChange={updateForm} required />
@@ -215,8 +250,8 @@ export function MembersPage({ notify }) {
             <textarea name="notes" value={form.notes} onChange={updateForm} rows={3} />
           </label>
           <button type="submit" className="primary-button span-2" disabled={saving}>
-            <Plus size={16} aria-hidden="true" />
-            Save member
+            {editingMemberId ? <Save size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}
+            {editingMemberId ? "Update member" : "Save member"}
           </button>
         </form>
       </section>
@@ -266,7 +301,9 @@ export function MembersPage({ notify }) {
           </form>
         </div>
 
-        {members.length ? (
+        {loading ? (
+          <Loader label="Loading members..." />
+        ) : members.length ? (
           <div className="table-wrap">
             <table>
               <thead>
@@ -298,9 +335,14 @@ export function MembersPage({ notify }) {
                       </button>
                     </td>
                     <td>
-                      <button type="button" className="icon-button danger-button" onClick={() => deleteMember(member)} aria-label={`Delete ${member.fullName}`}>
-                        <Trash2 size={15} aria-hidden="true" />
-                      </button>
+                      <div className="row-actions">
+                        <button type="button" className="icon-button edit-button" onClick={() => startEdit(member)} aria-label={`Edit ${member.fullName}`}>
+                          <Edit3 size={15} aria-hidden="true" />
+                        </button>
+                        <button type="button" className="icon-button danger-button" onClick={() => deleteMember(member)} aria-label={`Delete ${member.fullName}`}>
+                          <Trash2 size={15} aria-hidden="true" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

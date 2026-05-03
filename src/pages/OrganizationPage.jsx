@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Archive, CheckCircle2, Plus, RefreshCw } from "lucide-react";
+import { Archive, CheckCircle2, Edit3, Plus, RefreshCw, Save, X } from "lucide-react";
 import { apiRequest } from "../api/client.js";
 import { EmptyState } from "../components/EmptyState.jsx";
+import { Loader } from "../components/Loader.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { canManageUnits, canManageZones } from "../utils/roles.js";
 
@@ -14,17 +15,25 @@ export function OrganizationPage({ notify }) {
   const [units, setUnits] = useState([]);
   const [zoneForm, setZoneForm] = useState(initialZone);
   const [unitForm, setUnitForm] = useState(initialUnit);
+  const [editingZoneId, setEditingZoneId] = useState("");
+  const [editingUnitId, setEditingUnitId] = useState("");
+  const [zoneEditForm, setZoneEditForm] = useState(initialZone);
+  const [unitEditForm, setUnitEditForm] = useState(initialUnit);
+  const [unitZoneFilter, setUnitZoneFilter] = useState("");
+  const [zonePage, setZonePage] = useState(1);
+  const [unitPage, setUnitPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const unitsByZone = useMemo(() => {
-    return units.reduce((acc, unit) => {
-      const zoneId = unit.zone?._id || unit.zone;
-      acc[zoneId] = acc[zoneId] || [];
-      acc[zoneId].push(unit);
-      return acc;
-    }, {});
-  }, [units]);
+  const pageSize = 8;
+  const filteredUnits = useMemo(() => {
+    if (!unitZoneFilter) return units;
+    return units.filter((unit) => (unit.zone?._id || unit.zone) === unitZoneFilter);
+  }, [units, unitZoneFilter]);
+  const zonePageCount = Math.max(1, Math.ceil(zones.length / pageSize));
+  const unitPageCount = Math.max(1, Math.ceil(filteredUnits.length / pageSize));
+  const visibleZones = zones.slice((zonePage - 1) * pageSize, zonePage * pageSize);
+  const visibleUnits = filteredUnits.slice((unitPage - 1) * pageSize, unitPage * pageSize);
 
   async function load() {
     setLoading(true);
@@ -55,6 +64,30 @@ export function OrganizationPage({ notify }) {
     setUnitForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   }
 
+  function updateZoneEditField(event) {
+    setZoneEditForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  }
+
+  function updateUnitEditField(event) {
+    setUnitEditForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  }
+
+  function startZoneEdit(zone) {
+    setEditingZoneId(zone._id);
+    setZoneEditForm({ name: zone.name || "", code: zone.code || "", description: zone.description || "" });
+  }
+
+  function startUnitEdit(unit) {
+    setEditingUnitId(unit._id);
+    setUnitEditForm({
+      name: unit.name || "",
+      code: unit.code || "",
+      zone: unit.zone?._id || unit.zone || "",
+      area: unit.area || "",
+      meetingDay: unit.meetingDay || ""
+    });
+  }
+
   async function createZone(event) {
     event.preventDefault();
     setSaving(true);
@@ -64,6 +97,7 @@ export function OrganizationPage({ notify }) {
         body: zoneForm
       });
       setZones((current) => [...current, data.zone]);
+      setZonePage(Math.max(1, Math.ceil((zones.length + 1) / pageSize)));
       setZoneForm(initialZone);
       notify("Zone created.", "success");
     } catch (err) {
@@ -82,6 +116,7 @@ export function OrganizationPage({ notify }) {
         body: unitForm
       });
       setUnits((current) => [...current, data.unit]);
+      setUnitPage(Math.max(1, Math.ceil((filteredUnits.length + 1) / pageSize)));
       setUnitForm((current) => ({ ...initialUnit, zone: current.zone }));
       notify("Unit created.", "success");
     } catch (err) {
@@ -104,6 +139,40 @@ export function OrganizationPage({ notify }) {
     }
   }
 
+  async function saveZoneEdit(zoneId) {
+    setSaving(true);
+    try {
+      const data = await apiRequest(`/organization/zones/${zoneId}`, {
+        method: "PATCH",
+        body: zoneEditForm
+      });
+      setZones((current) => current.map((item) => (item._id === zoneId ? data.zone : item)));
+      setEditingZoneId("");
+      notify("Zone updated.", "success");
+    } catch (err) {
+      notify(err.message, "error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function saveUnitEdit(unitId) {
+    setSaving(true);
+    try {
+      const data = await apiRequest(`/organization/units/${unitId}`, {
+        method: "PATCH",
+        body: unitEditForm
+      });
+      setUnits((current) => current.map((item) => (item._id === unitId ? data.unit : item)));
+      setEditingUnitId("");
+      notify("Unit updated.", "success");
+    } catch (err) {
+      notify(err.message, "error");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function setUnitStatus(unit, isActive) {
     try {
       const data = await apiRequest(`/organization/units/${unit._id}`, {
@@ -115,6 +184,27 @@ export function OrganizationPage({ notify }) {
     } catch (err) {
       notify(err.message, "error");
     }
+  }
+
+  function changeUnitZoneFilter(event) {
+    setUnitZoneFilter(event.target.value);
+    setUnitPage(1);
+  }
+
+  function Pagination({ page, pageCount, onPageChange }) {
+    return (
+      <div className="pagination">
+        <button type="button" className="secondary-button compact" onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page <= 1}>
+          Previous
+        </button>
+        <span>
+          Page {page} of {pageCount}
+        </span>
+        <button type="button" className="secondary-button compact" onClick={() => onPageChange(Math.min(pageCount, page + 1))} disabled={page >= pageCount}>
+          Next
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -201,65 +291,158 @@ export function OrganizationPage({ notify }) {
 
       <section className="panel">
         <div className="panel-header">
-          <h2>Current Structure</h2>
-          <span>{zones.length} zones | {units.length} units</span>
+          <h2>Zones</h2>
+          <span>{zones.length} zones</span>
         </div>
-        {zones.length ? (
-          <div className="zone-grid">
-            {zones.map((zone) => (
-              <article className="zone-card" key={zone._id}>
-                <div className="zone-card-head">
-                  <div>
-                    <strong>{zone.name}</strong>
-                    <span>{zone.code}</span>
-                  </div>
-                  <div className="row-actions">
-                    <span className={zone.isActive ? "status active" : "status muted"}>
-                      {zone.isActive ? "Active" : "Inactive"}
-                    </span>
-                    {canManageZones(user.role) ? (
-                      <button
-                        type="button"
-                        className="icon-button"
-                        onClick={() => setZoneStatus(zone, !zone.isActive)}
-                        aria-label={zone.isActive ? `Archive ${zone.name}` : `Activate ${zone.name}`}
-                      >
-                        {zone.isActive ? <Archive size={15} aria-hidden="true" /> : <CheckCircle2 size={15} aria-hidden="true" />}
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-                <p>{zone.description || "No description added."}</p>
-                <div className="unit-list compact-list">
-                  {(unitsByZone[zone._id] || []).map((unit) => (
-                    <div className="list-row" key={unit._id}>
-                      <div>
-                        <strong>{unit.name}</strong>
-                        <span>{unit.area || "Area not set"}</span>
-                      </div>
-                      <div className="row-actions">
-                        <small>{unit.code}</small>
-                        <span className={unit.isActive ? "status active" : "status muted"}>{unit.isActive ? "Active" : "Inactive"}</span>
-                        {canManageUnits(user.role) ? (
-                          <button
-                            type="button"
-                            className="icon-button"
-                            onClick={() => setUnitStatus(unit, !unit.isActive)}
-                            aria-label={unit.isActive ? `Archive ${unit.name}` : `Activate ${unit.name}`}
-                          >
-                            {unit.isActive ? <Archive size={15} aria-hidden="true" /> : <CheckCircle2 size={15} aria-hidden="true" />}
-                          </button>
-                        ) : null}
-                      </div>
-                    </div>
+        {loading ? (
+          <Loader label="Loading zones..." />
+        ) : zones.length ? (
+          <>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleZones.map((zone) => (
+                    <tr key={zone._id}>
+                      <td>{editingZoneId === zone._id ? <input name="code" value={zoneEditForm.code} onChange={updateZoneEditField} required /> : zone.code}</td>
+                      <td>{editingZoneId === zone._id ? <input name="name" value={zoneEditForm.name} onChange={updateZoneEditField} required /> : zone.name}</td>
+                      <td>{editingZoneId === zone._id ? <input name="description" value={zoneEditForm.description} onChange={updateZoneEditField} /> : zone.description || <span className="muted-text">Not added</span>}</td>
+                      <td>
+                        <span className={zone.isActive ? "status active" : "status muted"}>{zone.isActive ? "Active" : "Inactive"}</span>
+                      </td>
+                      <td>
+                        <div className="row-actions">
+                          {canManageZones(user.role) && editingZoneId === zone._id ? (
+                            <>
+                              <button type="button" className="icon-button success-button" onClick={() => saveZoneEdit(zone._id)} aria-label={`Save ${zone.name}`} disabled={saving}>
+                                <Save size={15} aria-hidden="true" />
+                              </button>
+                              <button type="button" className="icon-button" onClick={() => setEditingZoneId("")} aria-label="Cancel edit">
+                                <X size={15} aria-hidden="true" />
+                              </button>
+                            </>
+                          ) : canManageZones(user.role) ? (
+                            <>
+                              <button type="button" className="icon-button edit-button" onClick={() => startZoneEdit(zone)} aria-label={`Edit ${zone.name}`}>
+                                <Edit3 size={15} aria-hidden="true" />
+                              </button>
+                              <button type="button" className={zone.isActive ? "icon-button archive-button" : "icon-button success-button"} onClick={() => setZoneStatus(zone, !zone.isActive)} aria-label={zone.isActive ? `Archive ${zone.name}` : `Activate ${zone.name}`}>
+                                {zone.isActive ? <Archive size={15} aria-hidden="true" /> : <CheckCircle2 size={15} aria-hidden="true" />}
+                              </button>
+                            </>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
                   ))}
-                  {!unitsByZone[zone._id]?.length ? <span className="muted-text">No units yet.</span> : null}
-                </div>
-              </article>
-            ))}
-          </div>
+                </tbody>
+              </table>
+            </div>
+            <Pagination page={zonePage} pageCount={zonePageCount} onPageChange={setZonePage} />
+          </>
         ) : (
-          <EmptyState title="No structure yet" text="Create the first zone to begin." />
+          <EmptyState title="No zones yet" text="Create the first zone to begin." />
+        )}
+      </section>
+
+      <section className="panel">
+        <div className="panel-header wrap">
+          <h2>Units</h2>
+          <div className="filter-row slim">
+            <label>
+              Zone
+              <select value={unitZoneFilter} onChange={changeUnitZoneFilter}>
+                <option value="">All zones</option>
+                {zones.map((zone) => (
+                  <option key={zone._id} value={zone._id}>
+                    {zone.code} - {zone.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <span>{filteredUnits.length} units</span>
+        </div>
+        {loading ? (
+          <Loader label="Loading units..." />
+        ) : filteredUnits.length ? (
+          <>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Zone</th>
+                    <th>Area</th>
+                    <th>Meeting</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleUnits.map((unit) => (
+                    <tr key={unit._id}>
+                      <td>{editingUnitId === unit._id ? <input name="code" value={unitEditForm.code} onChange={updateUnitEditField} required /> : unit.code}</td>
+                      <td>{editingUnitId === unit._id ? <input name="name" value={unitEditForm.name} onChange={updateUnitEditField} required /> : unit.name}</td>
+                      <td>
+                        {editingUnitId === unit._id ? (
+                          <select name="zone" value={unitEditForm.zone} onChange={updateUnitEditField} required>
+                            {zones.map((zone) => (
+                              <option key={zone._id} value={zone._id}>
+                                {zone.code} - {zone.name}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          unit.zone?.name || "Zone"
+                        )}
+                      </td>
+                      <td>{editingUnitId === unit._id ? <input name="area" value={unitEditForm.area} onChange={updateUnitEditField} /> : unit.area || <span className="muted-text">Not set</span>}</td>
+                      <td>{editingUnitId === unit._id ? <input name="meetingDay" value={unitEditForm.meetingDay} onChange={updateUnitEditField} /> : unit.meetingDay || <span className="muted-text">Not set</span>}</td>
+                      <td>
+                        <span className={unit.isActive ? "status active" : "status muted"}>{unit.isActive ? "Active" : "Inactive"}</span>
+                      </td>
+                      <td>
+                        <div className="row-actions">
+                          {canManageUnits(user.role) && editingUnitId === unit._id ? (
+                            <>
+                              <button type="button" className="icon-button success-button" onClick={() => saveUnitEdit(unit._id)} aria-label={`Save ${unit.name}`} disabled={saving}>
+                                <Save size={15} aria-hidden="true" />
+                              </button>
+                              <button type="button" className="icon-button" onClick={() => setEditingUnitId("")} aria-label="Cancel edit">
+                                <X size={15} aria-hidden="true" />
+                              </button>
+                            </>
+                          ) : canManageUnits(user.role) ? (
+                            <>
+                              <button type="button" className="icon-button edit-button" onClick={() => startUnitEdit(unit)} aria-label={`Edit ${unit.name}`}>
+                                <Edit3 size={15} aria-hidden="true" />
+                              </button>
+                              <button type="button" className={unit.isActive ? "icon-button archive-button" : "icon-button success-button"} onClick={() => setUnitStatus(unit, !unit.isActive)} aria-label={unit.isActive ? `Archive ${unit.name}` : `Activate ${unit.name}`}>
+                                {unit.isActive ? <Archive size={15} aria-hidden="true" /> : <CheckCircle2 size={15} aria-hidden="true" />}
+                              </button>
+                            </>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Pagination page={unitPage} pageCount={unitPageCount} onPageChange={setUnitPage} />
+          </>
+        ) : (
+          <EmptyState title="No units found" text="Create a unit or change the zone filter." />
         )}
       </section>
     </section>

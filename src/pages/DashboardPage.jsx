@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { apiRequest } from "../api/client.js";
 import { EmptyState } from "../components/EmptyState.jsx";
+import { Loader } from "../components/Loader.jsx";
 import { StatCard } from "../components/StatCard.jsx";
 
 function formatMoney(value) {
@@ -46,6 +47,8 @@ export function DashboardPage({ notify }) {
           Refresh
         </button>
       </header>
+
+      {loading ? <Loader label="Loading dashboard..." /> : null}
 
       <div className="stats-grid">
         <StatCard label="Zones" value={stats.zones || 0} helper="City structure" />

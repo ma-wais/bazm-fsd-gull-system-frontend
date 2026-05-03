@@ -103,6 +103,11 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgba(19, 121, 91, 0.12);
 }
 
+input:disabled {
+  background: #f1f5f3;
+  color: var(--muted);
+}
+
 label {
   display: grid;
   gap: 7px;
@@ -123,6 +128,31 @@ label .optional-text {
   min-height: 100vh;
   place-items: center;
   color: var(--muted);
+}
+
+.loader-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  color: var(--muted);
+  padding: 10px 14px;
+}
+
+.loader-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #d8e4df;
+  border-top-color: var(--primary);
+  border-radius: 999px;
+  animation: spin 0.85s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .login-page {
@@ -186,7 +216,7 @@ label .optional-text {
 
 .shell {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 240px 1fr;
   min-height: 100vh;
 }
 
@@ -198,7 +228,7 @@ label .optional-text {
   flex-direction: column;
   border-right: 1px solid var(--border);
   background: #fbfdfc;
-  padding: 16px;
+  padding: 14px;
 }
 
 .brand {
@@ -276,7 +306,7 @@ label .optional-text {
 
 .content {
   width: min(1440px, 100%);
-  padding: 22px;
+  padding: 15px;
 }
 
 .page-stack {
@@ -452,6 +482,11 @@ label .optional-text {
   align-items: end;
 }
 
+.filter-row.slim {
+  grid-template-columns: minmax(220px, 1fr);
+  width: min(320px, 100%);
+}
+
 .table-wrap {
   width: 100%;
   overflow-x: auto;
@@ -590,6 +625,36 @@ label .optional-text {
 .danger-button {
   background: #fde7ea;
   color: var(--danger);
+}
+
+.archive-button {
+  background: #fff1df;
+  color: var(--warning);
+}
+
+.success-button {
+  background: #dcf6e8;
+  color: #17643e;
+}
+
+.edit-button {
+  background: #e4eefb;
+  color: var(--accent);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid var(--border);
+  padding: 10px 12px;
+}
+
+.pagination span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
 }
 
 .narrow-panel {
