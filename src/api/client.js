@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL || "/api";
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? "https://bazm-e-paigham-fsd.onrender.com/api" : "/api");
 
 export function getToken() {
   return window.localStorage.getItem("bazm_token");
